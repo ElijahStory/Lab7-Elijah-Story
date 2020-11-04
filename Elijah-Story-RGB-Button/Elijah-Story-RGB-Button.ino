@@ -22,7 +22,7 @@ int stepAdjust = 5;
 int buttonState = 0;          //will say if the button is pressed or not
 boolean fadingState = false;  //says if the light is changing
 
-const int colors[][3] = {{255, 0, 0},{255, 127, 0},{255, 255, 0},{0, 255, 0},{0, 0, 255},{75, 0, 130},{143, 0, 255}};
+float colors[][3] = {{255, 0, 0},{255, 127, 0},{255, 255, 0},{0, 255, 0},{0, 0, 255},{75, 0, 130},{143, 0, 255}};
 
 
 void setup() {
@@ -32,6 +32,13 @@ void setup() {
   pinMode(buttonPin, INPUT);  //this reads the button press
 
   Serial.begin(9600);
+
+  for(int i = 0; i < 7; i++){
+    colors[i][0] = colors[i][0] / (255/stepAdjust);
+    colors[i][1] = colors[i][1] / (255/stepAdjust);
+    colors[i][2] = colors[i][2] / (255/stepAdjust);
+  }
+  setColor(redValue,greenValue,blueValue);
 }
 
 void loop() {
@@ -40,9 +47,13 @@ void loop() {
   if(buttonState == HIGH){              //if the button is pressed
     if(!fadingState){
         fadingState = true;
-        adjust(-stepAdjust);
+        adjust(-1);
         index++;
-        adjust(stepAdjust);
+        adjust(1);
+        Serial.print(redValue);
+        Serial.print(greenValue);
+        Serial.print(blueValue);
+        Serial.println("");
         fadingState = false;
     }
   }
@@ -50,11 +61,10 @@ void loop() {
 
 void adjust(int change){
     for(int i = 0; i < 255; i += stepAdjust){
-        redValue += colors[index%sizeof(colors)][0] / change;
-        greenValue += colors[index%sizeof(colors)][1] / change;
-        blueValue += colors[index%sizeof(colors)][2] / change;
+        redValue += colors[index%(sizeof(colors)/sizeof(colors[0]))][0] * change;
+        greenValue += colors[index%(sizeof(colors)/sizeof(colors[0]))][1] * change;
+        blueValue += colors[index%(sizeof(colors)/sizeof(colors[0]))][2] * change;
         setColor(redValue,greenValue,blueValue);
-        Serial.println(colors[index%sizeof(colors)][2] / change);
         delay(fadingDelay);
     }
 }
